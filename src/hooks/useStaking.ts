@@ -1,7 +1,15 @@
 
 import { useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey, Transaction, StakeProgram, Authorized, Lockup, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { 
+  PublicKey, 
+  Transaction, 
+  StakeProgram, 
+  Authorized, 
+  Lockup, 
+  LAMPORTS_PER_SOL,
+  SystemProgram
+} from '@solana/web3.js';
 import { useToast } from '@/hooks/use-toast';
 
 export const useStaking = () => {
@@ -86,10 +94,10 @@ export const useStaking = () => {
       const lamports = amount * LAMPORTS_PER_SOL;
       const recipientKey = recipient || PLATFORM_ADDRESS;
       
-      // Create transfer transaction
+      // Create transfer transaction using SystemProgram
       const transaction = new Transaction();
       transaction.add(
-        StakeProgram.transfer({
+        SystemProgram.transfer({
           fromPubkey: publicKey,
           toPubkey: recipientKey,
           lamports: lamports,
