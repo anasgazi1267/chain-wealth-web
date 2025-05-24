@@ -14,12 +14,12 @@ interface Props {
 }
 
 const WalletContextProvider: FC<Props> = ({ children }) => {
-  // You can also use mainnet-beta, testnet, or devnet here
-  const network = WalletAdapterNetwork.Mainnet;
+  // Using QuickNode RPC endpoint for better performance
+  const endpoint = useMemo(() => {
+    return 'https://young-boldest-hill.solana-mainnet.quiknode.pro/65cf66c12da19111a40ee60b21cc1822e260bda5/';
+  }, []);
   
-  // You can replace this with your custom RPC endpoint
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-  
+  // Multi-chain wallet support enabled
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
