@@ -8,19 +8,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { TrendingUp, Shield, Zap, ArrowRight } from "lucide-react";
+import { useSolanaBalance } from "@/hooks/useSolanaBalance";
+import { useStaking } from "@/hooks/useStaking";
+import { useWallet } from '@solana/wallet-adapter-react';
 
 const Stake = () => {
   const [stakeAmount, setStakeAmount] = useState("");
-  const [unstakeAmount, setUnstakeAmount] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const { balance, loading: balanceLoading } = useSolanaBalance();
+  const { stakeSOL, sendPayment, loading: stakingLoading, platformAddress } = useStaking();
+  const { connected } = useWallet();
 
   const handleStake = () => {
-    console.log("Staking", stakeAmount, "SOL");
-    // Implementation will require wallet connection and transaction
+    if (!stakeAmount || parseFloat(stakeAmount) <= 0) return;
+    stakeSOL(parseFloat(stakeAmount));
+    setStakeAmount("");
   };
 
-  const handleUnstake = () => {
-    console.log("Unstaking", unstakeAmount, "SOL");
-    // Implementation will require wallet connection and transaction
+  const handlePayment = () => {
+    if (!paymentAmount || parseFloat(paymentAmount) <= 0) return;
+    sendPayment(parseFloat(paymentAmount));
+    setPaymentAmount("");
   };
 
   return (
@@ -41,16 +49,16 @@ const Stake = () => {
           {/* Staking Interface */}
           <Card className="bg-white/10 backdrop-blur-lg border-purple-300/30">
             <CardHeader>
-              <CardTitle className="text-white text-2xl">Stake SOL</CardTitle>
+              <CardTitle className="text-white text-2xl">Stake & Pay</CardTitle>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="stake" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 bg-purple-800/50">
                   <TabsTrigger value="stake" className="text-white data-[state=active]:bg-purple-600">
-                    Stake
+                    Stake SOL
                   </TabsTrigger>
-                  <TabsTrigger value="unstake" className="text-white data-[state=active]:bg-purple-600">
-                    Unstake
+                  <TabsTrigger value="payment" className="text-white data-[state=active]:bg-purple-600">
+                    Send Payment
                   </TabsTrigger>
                 </TabsList>
                 
@@ -79,52 +87,52 @@ const Stake = () => {
                       <span className="text-white">{stakeAmount ? (parseFloat(stakeAmount) * 0.082).toFixed(4) : "0.0000"} SOL</span>
                     </div>
                     <div className="flex justify-between text-sm text-purple-200">
-                      <span>Epoch Duration:</span>
-                      <span className="text-white">~2-3 days</span>
+                      <span>Platform Address:</span>
+                      <span className="text-white text-xs">{platformAddress.slice(0, 8)}...{platformAddress.slice(-8)}</span>
                     </div>
                   </div>
                   
                   <Button 
                     onClick={handleStake}
                     className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3"
-                    disabled={!stakeAmount || parseFloat(stakeAmount) <= 0}
+                    disabled={!connected || !stakeAmount || parseFloat(stakeAmount) <= 0 || stakingLoading}
                   >
-                    Stake SOL <ArrowRight className="ml-2 h-4 w-4" />
+                    {stakingLoading ? "Processing..." : "Stake SOL"} <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </TabsContent>
                 
-                <TabsContent value="unstake" className="space-y-6">
+                <TabsContent value="payment" className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="unstake-amount" className="text-white">
-                      Amount to Unstake (SOL)
+                    <Label htmlFor="payment-amount" className="text-white">
+                      Payment Amount (SOL)
                     </Label>
                     <Input
-                      id="unstake-amount"
+                      id="payment-amount"
                       type="number"
                       placeholder="0.00"
-                      value={unstakeAmount}
-                      onChange={(e) => setUnstakeAmount(e.target.value)}
+                      value={paymentAmount}
+                      onChange={(e) => setPaymentAmount(e.target.value)}
                       className="bg-purple-800/30 border-purple-600 text-white placeholder-purple-300"
                     />
                   </div>
                   
                   <div className="bg-purple-800/30 p-4 rounded-lg">
                     <div className="flex justify-between text-sm text-purple-200 mb-2">
-                      <span>Unstaking Period:</span>
-                      <span className="text-yellow-400">1-2 epochs (~2-6 days)</span>
+                      <span>Recipient:</span>
+                      <span className="text-white text-xs">Platform Wallet</span>
                     </div>
                     <div className="flex justify-between text-sm text-purple-200">
-                      <span>Available to Unstake:</span>
-                      <span className="text-white">0.0000 SOL</span>
+                      <span>Transaction Fee:</span>
+                      <span className="text-white">~0.000005 SOL</span>
                     </div>
                   </div>
                   
                   <Button 
-                    onClick={handleUnstake}
-                    className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white py-3"
-                    disabled={!unstakeAmount || parseFloat(unstakeAmount) <= 0}
+                    onClick={handlePayment}
+                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3"
+                    disabled={!connected || !paymentAmount || parseFloat(paymentAmount) <= 0 || stakingLoading}
                   >
-                    Unstake SOL
+                    {stakingLoading ? "Processing..." : "Send Payment"}
                   </Button>
                 </TabsContent>
               </Tabs>
@@ -134,38 +142,42 @@ const Stake = () => {
           {/* Portfolio Overview */}
           <Card className="bg-white/10 backdrop-blur-lg border-purple-300/30">
             <CardHeader>
-              <CardTitle className="text-white text-2xl">Your Portfolio</CardTitle>
+              <CardTitle className="text-white text-2xl">Your Wallet</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="bg-purple-800/30 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-white">0.00</div>
-                  <div className="text-sm text-purple-200">SOL Staked</div>
-                </div>
-                <div className="bg-blue-800/30 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-green-400">0.00</div>
-                  <div className="text-sm text-purple-200">Total Rewards</div>
+                  <div className="text-3xl font-bold text-white">
+                    {balanceLoading ? "Loading..." : balance ? balance.toFixed(4) : "0.00"}
+                  </div>
+                  <div className="text-sm text-purple-200">SOL Balance</div>
                 </div>
               </div>
               
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-purple-200">Wallet Balance:</span>
-                  <span className="text-white">-- SOL</span>
+                  <span className="text-purple-200">Wallet Status:</span>
+                  <span className={`${connected ? 'text-green-400' : 'text-red-400'}`}>
+                    {connected ? 'Connected' : 'Not Connected'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-purple-200">Current APY:</span>
                   <span className="text-green-400">8.2%</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-purple-200">Next Reward:</span>
-                  <span className="text-white">-- hours</span>
+                  <span className="text-purple-200">Platform Address:</span>
+                  <span className="text-white text-xs">{platformAddress.slice(0, 12)}...</span>
                 </div>
               </div>
               
-              <Button variant="outline" className="w-full border-purple-400 text-purple-300 hover:bg-purple-800">
-                View Detailed History
-              </Button>
+              {!connected && (
+                <div className="bg-yellow-600/20 border border-yellow-500/30 p-4 rounded-lg">
+                  <p className="text-yellow-200 text-sm text-center">
+                    Connect your wallet to start staking and view your balance
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
