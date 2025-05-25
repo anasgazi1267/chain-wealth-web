@@ -2,24 +2,18 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Coins, Menu, X, LogOut } from 'lucide-react';
+import { Coins, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import WalletConnect from './WalletConnect';
-import { useAuth } from '@/hooks/useAuth';
+import { useWalletAuth } from '@/hooks/useWalletAuth';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { isAuthenticated, profile } = useWalletAuth();
   const navigate = useNavigate();
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
-
-  const navItems = user ? [
-    { name: 'Home', href: '/' },
-    { name: 'Stake', href: '/stake' },
+  const navItems = isAuthenticated ? [
+    { name: 'Dashboard', href: '/stake' },
     { name: 'Validators', href: '/validators' },
     { name: 'Rewards', href: '/rewards' },
   ] : [
@@ -51,31 +45,11 @@ const Navigation = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            {user ? (
-              <>
-                <WalletConnect />
-                <span className="text-purple-200 text-sm">
-                  Welcome, {user.user_metadata?.username || user.email}
-                </span>
-                <Button
-                  onClick={handleSignOut}
-                  variant="outline"
-                  size="sm"
-                  className="border-purple-400 text-purple-300 hover:bg-purple-500/20"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <>
-                <WalletConnect />
-                <Link to="/auth">
-                  <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
-                    Sign In
-                  </Button>
-                </Link>
-              </>
+            <WalletConnect />
+            {isAuthenticated && profile && (
+              <span className="text-purple-200 text-sm">
+                Welcome, {profile.username}
+              </span>
             )}
           </div>
 
@@ -108,27 +82,10 @@ const Navigation = () => {
             
             <div className="pt-4 border-t border-purple-300/20 space-y-3">
               <WalletConnect />
-              {user ? (
-                <>
-                  <div className="text-purple-200 text-sm">
-                    Welcome, {user.user_metadata?.username || user.email}
-                  </div>
-                  <Button
-                    onClick={handleSignOut}
-                    variant="outline"
-                    size="sm"
-                    className="w-full border-purple-400 text-purple-300 hover:bg-purple-500/20"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </>
-              ) : (
-                <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
-                    Sign In
-                  </Button>
-                </Link>
+              {isAuthenticated && profile && (
+                <div className="text-purple-200 text-sm">
+                  Welcome, {profile.username}
+                </div>
               )}
             </div>
           </div>
