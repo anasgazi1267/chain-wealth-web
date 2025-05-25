@@ -5,7 +5,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import WalletContextProvider from "./providers/WalletProvider";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Stake from "./pages/Stake";
 import Validators from "./pages/Validators";
 import Rewards from "./pages/Rewards";
@@ -22,10 +24,22 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/stake" element={<Stake />} />
-            <Route path="/validators" element={<Validators />} />
-            <Route path="/rewards" element={<Rewards />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/stake" element={
+              <ProtectedRoute>
+                <Stake />
+              </ProtectedRoute>
+            } />
+            <Route path="/validators" element={
+              <ProtectedRoute>
+                <Validators />
+              </ProtectedRoute>
+            } />
+            <Route path="/rewards" element={
+              <ProtectedRoute>
+                <Rewards />
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

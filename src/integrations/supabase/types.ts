@@ -9,7 +9,227 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      platform_stats: {
+        Row: {
+          average_apy: number | null
+          id: string
+          total_rewards_distributed: number | null
+          total_staked: number | null
+          total_users: number | null
+          total_validators: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          average_apy?: number | null
+          id?: string
+          total_rewards_distributed?: number | null
+          total_staked?: number | null
+          total_users?: number | null
+          total_validators?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          average_apy?: number | null
+          id?: string
+          total_rewards_distributed?: number | null
+          total_staked?: number | null
+          total_users?: number | null
+          total_validators?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          total_rewards: number | null
+          total_staked: number | null
+          updated_at: string | null
+          username: string | null
+          wallet_address: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          total_rewards?: number | null
+          total_staked?: number | null
+          updated_at?: string | null
+          username?: string | null
+          wallet_address?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          total_rewards?: number | null
+          total_staked?: number | null
+          updated_at?: string | null
+          username?: string | null
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      rewards_history: {
+        Row: {
+          claimed_at: string | null
+          epoch_number: number
+          id: string
+          reward_amount: number
+          staking_position_id: string | null
+          user_id: string
+          validator_address: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          epoch_number: number
+          id?: string
+          reward_amount: number
+          staking_position_id?: string | null
+          user_id: string
+          validator_address: string
+        }
+        Update: {
+          claimed_at?: string | null
+          epoch_number?: number
+          id?: string
+          reward_amount?: number
+          staking_position_id?: string | null
+          user_id?: string
+          validator_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rewards_history_staking_position_id_fkey"
+            columns: ["staking_position_id"]
+            isOneToOne: false
+            referencedRelation: "staking_positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staking_positions: {
+        Row: {
+          apy: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          rewards_earned: number
+          stake_account_address: string | null
+          staked_amount: number
+          updated_at: string | null
+          user_id: string
+          validator_address: string
+        }
+        Insert: {
+          apy?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          rewards_earned?: number
+          stake_account_address?: string | null
+          staked_amount?: number
+          updated_at?: string | null
+          user_id: string
+          validator_address: string
+        }
+        Update: {
+          apy?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          rewards_earned?: number
+          stake_account_address?: string | null
+          staked_amount?: number
+          updated_at?: string | null
+          user_id?: string
+          validator_address?: string
+        }
+        Relationships: []
+      }
+      staking_transactions: {
+        Row: {
+          amount: number
+          block_hash: string | null
+          created_at: string | null
+          id: string
+          status: string | null
+          transaction_signature: string
+          transaction_type: string
+          user_id: string
+          validator_address: string | null
+        }
+        Insert: {
+          amount: number
+          block_hash?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          transaction_signature: string
+          transaction_type: string
+          user_id: string
+          validator_address?: string | null
+        }
+        Update: {
+          amount?: number
+          block_hash?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          transaction_signature?: string
+          transaction_type?: string
+          user_id?: string
+          validator_address?: string | null
+        }
+        Relationships: []
+      }
+      validators: {
+        Row: {
+          apy: number | null
+          commission: number
+          created_at: string | null
+          description: string | null
+          id: string
+          identity_verified: boolean | null
+          name: string
+          status: string | null
+          total_staked: number | null
+          updated_at: string | null
+          uptime: number | null
+          validator_address: string
+          website: string | null
+        }
+        Insert: {
+          apy?: number | null
+          commission: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          identity_verified?: boolean | null
+          name: string
+          status?: string | null
+          total_staked?: number | null
+          updated_at?: string | null
+          uptime?: number | null
+          validator_address: string
+          website?: string | null
+        }
+        Update: {
+          apy?: number | null
+          commission?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          identity_verified?: boolean | null
+          name?: string
+          status?: string | null
+          total_staked?: number | null
+          updated_at?: string | null
+          uptime?: number | null
+          validator_address?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

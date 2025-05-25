@@ -7,81 +7,32 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Search, TrendingUp, Shield, Zap } from "lucide-react";
+import { useValidators } from "@/hooks/useValidators";
 
 const Validators = () => {
   const [searchTerm, setSearchTerm] = useState("");
-
-  const validators = [
-    {
-      id: 1,
-      name: "Solana Foundation",
-      commission: "5%",
-      apy: "8.2%",
-      staked: "1.2M SOL",
-      uptime: "99.9%",
-      status: "Active",
-      identity: "Verified"
-    },
-    {
-      id: 2,
-      name: "Phantom Validator",
-      commission: "7%",
-      apy: "8.0%",
-      staked: "890K SOL",
-      uptime: "99.8%",
-      status: "Active",
-      identity: "Verified"
-    },
-    {
-      id: 3,
-      name: "Serum Validator",
-      commission: "6%",
-      apy: "8.1%",
-      staked: "750K SOL",
-      uptime: "99.7%",
-      status: "Active",
-      identity: "Verified"
-    },
-    {
-      id: 4,
-      name: "Mango Markets",
-      commission: "8%",
-      apy: "7.9%",
-      staked: "650K SOL",
-      uptime: "99.6%",
-      status: "Active",
-      identity: "Verified"
-    },
-    {
-      id: 5,
-      name: "Raydium Validator",
-      commission: "5.5%",
-      apy: "8.15%",
-      staked: "580K SOL",
-      uptime: "99.9%",
-      status: "Active",
-      identity: "Verified"
-    },
-    {
-      id: 6,
-      name: "Orca Validator",
-      commission: "6.5%",
-      apy: "8.05%",
-      staked: "520K SOL",
-      uptime: "99.8%",
-      status: "Active",
-      identity: "Verified"
-    }
-  ];
+  const { validators, loading } = useValidators();
 
   const filteredValidators = validators.filter(validator =>
     validator.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleStakeToValidator = (validatorId: number) => {
-    console.log("Staking to validator:", validatorId);
-    // This would open a staking modal or redirect to stake page with validator pre-selected
+  const handleStakeToValidator = (validatorAddress: string) => {
+    console.log("Staking to validator:", validatorAddress);
+    // This would redirect to stake page with validator pre-selected
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <Navigation />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-white text-xl">Loading validators...</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
@@ -116,27 +67,33 @@ const Validators = () => {
           <Card className="bg-white/10 backdrop-blur-lg border-purple-300/30 text-center">
             <CardContent className="p-6">
               <TrendingUp className="h-8 w-8 text-green-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">8.2%</div>
+              <div className="text-2xl font-bold text-white">
+                {validators.length > 0 ? (validators.reduce((sum, v) => sum + v.apy, 0) / validators.length).toFixed(1) : '0.0'}%
+              </div>
               <div className="text-sm text-purple-200">Average APY</div>
             </CardContent>
           </Card>
           <Card className="bg-white/10 backdrop-blur-lg border-purple-300/30 text-center">
             <CardContent className="p-6">
               <Shield className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">1,200+</div>
+              <div className="text-2xl font-bold text-white">{validators.length}</div>
               <div className="text-sm text-purple-200">Active Validators</div>
             </CardContent>
           </Card>
           <Card className="bg-white/10 backdrop-blur-lg border-purple-300/30 text-center">
             <CardContent className="p-6">
               <Zap className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">99.8%</div>
+              <div className="text-2xl font-bold text-white">
+                {validators.length > 0 ? (validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length).toFixed(1) : '0.0'}%
+              </div>
               <div className="text-sm text-purple-200">Network Uptime</div>
             </CardContent>
           </Card>
           <Card className="bg-white/10 backdrop-blur-lg border-purple-300/30 text-center">
             <CardContent className="p-6">
-              <div className="text-2xl font-bold text-purple-300">4.2M</div>
+              <div className="text-2xl font-bold text-purple-300">
+                {validators.length > 0 ? (validators.reduce((sum, v) => sum + v.total_staked, 0) / 1000000).toFixed(1) : '0.0'}M
+              </div>
               <div className="text-sm text-purple-200">Total SOL Staked</div>
             </CardContent>
           </Card>
@@ -164,9 +121,11 @@ const Validators = () => {
                           <Badge variant="outline" className="border-green-400 text-green-400">
                             {validator.status}
                           </Badge>
-                          <Badge variant="outline" className="border-blue-400 text-blue-400">
-                            {validator.identity}
-                          </Badge>
+                          {validator.identity_verified && (
+                            <Badge variant="outline" className="border-blue-400 text-blue-400">
+                              Verified
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -174,29 +133,31 @@ const Validators = () => {
 
                   {/* Performance Metrics */}
                   <div className="text-center">
-                    <div className="text-lg font-semibold text-green-400">{validator.apy}</div>
+                    <div className="text-lg font-semibold text-green-400">{validator.apy}%</div>
                     <div className="text-sm text-purple-200">APY</div>
                   </div>
                   
                   <div className="text-center">
-                    <div className="text-lg font-semibold text-white">{validator.commission}</div>
+                    <div className="text-lg font-semibold text-white">{validator.commission}%</div>
                     <div className="text-sm text-purple-200">Commission</div>
                   </div>
                   
                   <div className="text-center">
-                    <div className="text-lg font-semibold text-white">{validator.staked}</div>
+                    <div className="text-lg font-semibold text-white">
+                      {(validator.total_staked / 1000).toFixed(0)}K
+                    </div>
                     <div className="text-sm text-purple-200">Total Staked</div>
                   </div>
                   
                   <div className="text-center">
-                    <div className="text-lg font-semibold text-blue-400">{validator.uptime}</div>
+                    <div className="text-lg font-semibold text-blue-400">{validator.uptime}%</div>
                     <div className="text-sm text-purple-200">Uptime</div>
                   </div>
 
                   {/* Action Button */}
                   <div className="text-center">
                     <Button
-                      onClick={() => handleStakeToValidator(validator.id)}
+                      onClick={() => handleStakeToValidator(validator.validator_address)}
                       className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-2"
                     >
                       Stake Here
