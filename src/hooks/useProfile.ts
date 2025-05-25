@@ -1,11 +1,11 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useWalletAuth } from './useWalletAuth';
 
 interface Profile {
   id: string;
-  wallet_address?: string;
+  wallet_address: string;
   username?: string;
   total_staked: number;
   total_rewards: number;
@@ -14,47 +14,18 @@ interface Profile {
 }
 
 export const useProfile = () => {
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) {
-      setProfile(null);
-      setLoading(false);
-      return;
-    }
-
-    const fetchProfile = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching profile:', error);
-        } else {
-          setProfile(data);
-        }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [user]);
+  const { walletAddress, profile } = useWalletAuth();
+  const [loading, setLoading] = useState(false);
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return;
+    if (!walletAddress) return { error: 'No wallet connected' };
 
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('profiles')
-        .upsert({ id: user.id, ...updates })
+        .update(updates)
+        .eq('wallet_address', walletAddress)
         .select()
         .single();
 
@@ -63,11 +34,12 @@ export const useProfile = () => {
         return { error };
       }
 
-      setProfile(data);
       return { data };
     } catch (error) {
       console.error('Error updating profile:', error);
       return { error };
+    } finally {
+      setLoading(false);
     }
   };
 
