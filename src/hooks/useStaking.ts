@@ -11,20 +11,18 @@ import {
   SystemProgram
 } from '@solana/web3.js';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useWalletAuth } from './useWalletAuth';
 
 export const useStaking = () => {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const { walletAddress } = useWalletAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
+  // Your receiving address
   const PLATFORM_ADDRESS = new PublicKey('F3Cs6P1PHPYcAyLWKgPHD7PD3mYqzdDrNXkWiQrvnoDw');
 
-  const stakeSOL = async (amount: number, validatorAddress?: string) => {
-    if (!publicKey || !sendTransaction || !walletAddress) {
+  const stakeSOL = async (amount: number) => {
+    if (!publicKey || !sendTransaction) {
       toast({
         title: "Wallet not connected",
         description: "Please connect your wallet to stake SOL",
@@ -37,9 +35,14 @@ export const useStaking = () => {
       setLoading(true);
       
       const lamports = amount * LAMPORTS_PER_SOL;
+      
+      // Create a stake account
       const stakeAccount = PublicKey.unique();
+      
+      // Create stake account transaction
       const transaction = new Transaction();
       
+      // Add create stake account instruction
       transaction.add(
         StakeProgram.createAccount({
           fromPubkey: publicKey,
@@ -50,37 +53,19 @@ export const useStaking = () => {
         })
       );
 
+      // Send transaction
       const signature = await sendTransaction(transaction, connection);
-      await connection.confirmTransaction(signature, 'confirmed');
       
-      // Record the transaction in database
-      await supabase.from('staking_transactions').insert([
-        {
-          wallet_address: walletAddress,
-          transaction_signature: signature,
-          transaction_type: 'stake',
-          amount: amount,
-          validator_address: validatorAddress || PLATFORM_ADDRESS.toString(),
-          status: 'confirmed'
-        }
-      ]);
-
-      // Update or create staking position
-      await supabase.from('staking_positions').upsert([
-        {
-          wallet_address: walletAddress,
-          validator_address: validatorAddress || PLATFORM_ADDRESS.toString(),
-          staked_amount: amount,
-          stake_account_address: stakeAccount.toString(),
-          is_active: true
-        }
-      ]);
+      // Wait for confirmation
+      await connection.confirmTransaction(signature, 'confirmed');
       
       toast({
         title: "Staking Successful!",
         description: `Successfully staked ${amount} SOL`,
       });
 
+      console.log('Stake transaction signature:', signature);
+      
     } catch (error) {
       console.error('Staking error:', error);
       toast({
@@ -94,7 +79,7 @@ export const useStaking = () => {
   };
 
   const sendPayment = async (amount: number, recipient?: PublicKey) => {
-    if (!publicKey || !sendTransaction || !walletAddress) {
+    if (!publicKey || !sendTransaction) {
       toast({
         title: "Wallet not connected",
         description: "Please connect your wallet",
@@ -109,6 +94,7 @@ export const useStaking = () => {
       const lamports = amount * LAMPORTS_PER_SOL;
       const recipientKey = recipient || PLATFORM_ADDRESS;
       
+      // Create transfer transaction using SystemProgram
       const transaction = new Transaction();
       transaction.add(
         SystemProgram.transfer({
@@ -118,25 +104,19 @@ export const useStaking = () => {
         })
       );
 
+      // Send transaction
       const signature = await sendTransaction(transaction, connection);
-      await connection.confirmTransaction(signature, 'confirmed');
       
-      // Record the payment transaction
-      await supabase.from('staking_transactions').insert([
-        {
-          wallet_address: walletAddress,
-          transaction_signature: signature,
-          transaction_type: 'payment',
-          amount: amount,
-          status: 'confirmed'
-        }
-      ]);
+      // Wait for confirmation
+      await connection.confirmTransaction(signature, 'confirmed');
       
       toast({
         title: "Payment Successful!",
         description: `Successfully sent ${amount} SOL`,
       });
 
+      console.log('Payment transaction signature:', signature);
+      
     } catch (error) {
       console.error('Payment error:', error);
       toast({

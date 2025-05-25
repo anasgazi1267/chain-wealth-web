@@ -47,16 +47,16 @@ export type Database = {
           total_staked: number | null
           updated_at: string | null
           username: string | null
-          wallet_address: string
+          wallet_address: string | null
         }
         Insert: {
           created_at?: string | null
-          id?: string
+          id: string
           total_rewards?: number | null
           total_staked?: number | null
           updated_at?: string | null
           username?: string | null
-          wallet_address: string
+          wallet_address?: string | null
         }
         Update: {
           created_at?: string | null
@@ -65,7 +65,7 @@ export type Database = {
           total_staked?: number | null
           updated_at?: string | null
           username?: string | null
-          wallet_address?: string
+          wallet_address?: string | null
         }
         Relationships: []
       }
@@ -76,8 +76,8 @@ export type Database = {
           id: string
           reward_amount: number
           staking_position_id: string | null
+          user_id: string
           validator_address: string
-          wallet_address: string
         }
         Insert: {
           claimed_at?: string | null
@@ -85,8 +85,8 @@ export type Database = {
           id?: string
           reward_amount: number
           staking_position_id?: string | null
+          user_id: string
           validator_address: string
-          wallet_address?: string
         }
         Update: {
           claimed_at?: string | null
@@ -94,17 +94,10 @@ export type Database = {
           id?: string
           reward_amount?: number
           staking_position_id?: string | null
+          user_id?: string
           validator_address?: string
-          wallet_address?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_wallet_rewards"
-            columns: ["wallet_address"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["wallet_address"]
-          },
           {
             foreignKeyName: "rewards_history_staking_position_id_fkey"
             columns: ["staking_position_id"]
@@ -124,8 +117,8 @@ export type Database = {
           stake_account_address: string | null
           staked_amount: number
           updated_at: string | null
+          user_id: string
           validator_address: string
-          wallet_address: string
         }
         Insert: {
           apy?: number | null
@@ -136,8 +129,8 @@ export type Database = {
           stake_account_address?: string | null
           staked_amount?: number
           updated_at?: string | null
+          user_id: string
           validator_address: string
-          wallet_address?: string
         }
         Update: {
           apy?: number | null
@@ -148,18 +141,10 @@ export type Database = {
           stake_account_address?: string | null
           staked_amount?: number
           updated_at?: string | null
+          user_id?: string
           validator_address?: string
-          wallet_address?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_wallet_positions"
-            columns: ["wallet_address"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
+        Relationships: []
       }
       staking_transactions: {
         Row: {
@@ -170,8 +155,8 @@ export type Database = {
           status: string | null
           transaction_signature: string
           transaction_type: string
+          user_id: string
           validator_address: string | null
-          wallet_address: string
         }
         Insert: {
           amount: number
@@ -181,8 +166,8 @@ export type Database = {
           status?: string | null
           transaction_signature: string
           transaction_type: string
+          user_id: string
           validator_address?: string | null
-          wallet_address?: string
         }
         Update: {
           amount?: number
@@ -192,18 +177,10 @@ export type Database = {
           status?: string | null
           transaction_signature?: string
           transaction_type?: string
+          user_id?: string
           validator_address?: string | null
-          wallet_address?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_wallet_address"
-            columns: ["wallet_address"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
+        Relationships: []
       }
       validators: {
         Row: {
