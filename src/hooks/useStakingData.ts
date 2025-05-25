@@ -54,7 +54,7 @@ export const useStakingData = () => {
           setPositions(positionsData || []);
         }
 
-        // Fetch recent transactions
+        // Fetch recent transactions with proper type casting
         const { data: transactionsData, error: transactionsError } = await supabase
           .from('staking_transactions')
           .select('*')
@@ -65,7 +65,13 @@ export const useStakingData = () => {
         if (transactionsError) {
           console.error('Error fetching transactions:', transactionsError);
         } else {
-          setTransactions(transactionsData || []);
+          // Type cast the data properly
+          const typedTransactions: StakingTransaction[] = (transactionsData || []).map(tx => ({
+            ...tx,
+            transaction_type: tx.transaction_type as 'stake' | 'unstake' | 'reward',
+            status: tx.status as 'pending' | 'confirmed' | 'failed'
+          }));
+          setTransactions(typedTransactions);
         }
       } catch (error) {
         console.error('Error fetching staking data:', error);
@@ -92,8 +98,15 @@ export const useStakingData = () => {
         return { error };
       }
 
-      setTransactions(prev => [data, ...prev]);
-      return { data };
+      // Type cast the returned data properly
+      const typedTransaction: StakingTransaction = {
+        ...data,
+        transaction_type: data.transaction_type as 'stake' | 'unstake' | 'reward',
+        status: data.status as 'pending' | 'confirmed' | 'failed'
+      };
+
+      setTransactions(prev => [typedTransaction, ...prev]);
+      return { data: typedTransaction };
     } catch (error) {
       console.error('Error adding transaction:', error);
       return { error };

@@ -32,7 +32,12 @@ export const useValidators = () => {
         if (error) {
           console.error('Error fetching validators:', error);
         } else {
-          setValidators(data || []);
+          // Type cast the data properly
+          const typedValidators: Validator[] = (data || []).map(validator => ({
+            ...validator,
+            status: validator.status as 'active' | 'inactive' | 'delinquent'
+          }));
+          setValidators(typedValidators);
         }
       } catch (error) {
         console.error('Error fetching validators:', error);
