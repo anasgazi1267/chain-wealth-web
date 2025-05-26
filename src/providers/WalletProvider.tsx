@@ -26,7 +26,7 @@ const WalletContextProvider: FC<Props> = ({ children }) => {
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
+      new SolflareWalletAdapter({ network: WalletAdapterNetwork.Mainnet }),
       new TorusWalletAdapter(),
     ],
     []
@@ -34,7 +34,13 @@ const WalletContextProvider: FC<Props> = ({ children }) => {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
+      <WalletProvider 
+        wallets={wallets} 
+        autoConnect={true}
+        onError={(error) => {
+          console.error('Wallet connection error:', error);
+        }}
+      >
         <WalletModalProvider>
           {children}
         </WalletModalProvider>

@@ -16,34 +16,41 @@ interface Profile {
 }
 
 export const useWalletAuth = () => {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, connecting } = useWallet();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (connected && publicKey) {
       createOrGetProfile(publicKey.toString());
-    } else if (!connected) {
+    } else if (!connected && !connecting) {
       setProfile(null);
+      setError(null);
     }
-  }, [connected, publicKey]);
+  }, [connected, publicKey, connecting]);
 
   const createOrGetProfile = async (walletAddress: string) => {
     try {
       setLoading(true);
+      setError(null);
       
       // Check if profile exists
-      const { data: existingProfile } = await supabase
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
         .eq('wallet_address', walletAddress)
         .maybeSingle();
 
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+
       if (existingProfile) {
         setProfile(existingProfile);
       } else {
         // Create new profile
-        const { data: newProfile, error } = await supabase
+        const { data: newProfile, error: createError } = await supabase
           .from('profiles')
           .insert([
             {
@@ -58,14 +65,15 @@ export const useWalletAuth = () => {
           .select()
           .single();
 
-        if (error) {
-          console.error('Error creating profile:', error);
-        } else {
-          setProfile(newProfile);
+        if (createError) {
+          throw createError;
         }
+
+        setProfile(newProfile);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in createOrGetProfile:', error);
+      setError(error.message || 'Failed to connect to profile system');
     } finally {
       setLoading(false);
     }
@@ -98,6 +106,7 @@ export const useWalletAuth = () => {
   return {
     profile,
     loading,
+    error,
     isAuthenticated: connected && !!profile,
     walletAddress: publicKey?.toString(),
     updateProfile,
