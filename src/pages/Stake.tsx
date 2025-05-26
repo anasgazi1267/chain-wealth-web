@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import ReferralSystem from "@/components/ReferralSystem";
 import { TrendingUp, Shield, Zap, ArrowRight } from "lucide-react";
 import { useSolanaBalance } from "@/hooks/useSolanaBalance";
 import { useStaking } from "@/hooks/useStaking";
@@ -45,9 +46,9 @@ const Stake = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           {/* Staking Interface */}
-          <Card className="bg-white/10 backdrop-blur-lg border-purple-300/30">
+          <Card className="bg-white/10 backdrop-blur-lg border-purple-300/30 lg:col-span-2">
             <CardHeader>
               <CardTitle className="text-white text-2xl">Stake & Pay</CardTitle>
             </CardHeader>
@@ -180,6 +181,11 @@ const Stake = () => {
               )}
             </CardContent>
           </Card>
+        </div>
+
+        {/* Referral System */}
+        <div className="mb-12">
+          <ReferralSystem />
         </div>
 
         {/* Features */}

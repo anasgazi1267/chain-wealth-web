@@ -1,18 +1,23 @@
 
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useWalletAuth } from '@/hooks/useWalletAuth';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 const WalletRedirect = () => {
-  const { isAuthenticated } = useWalletAuth();
+  const { connected } = useWallet();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    if (isAuthenticated && location.pathname === '/') {
-      navigate('/stake', { replace: true });
+    // Only redirect if wallet is connected and on home page
+    if (connected && location.pathname === '/') {
+      // Use a small delay to prevent immediate redirect loops
+      const timer = setTimeout(() => {
+        navigate('/stake', { replace: true });
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, location.pathname, navigate]);
+  }, [connected, location.pathname, navigate]);
 
   return null;
 };

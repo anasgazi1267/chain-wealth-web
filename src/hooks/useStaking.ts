@@ -21,6 +21,53 @@ export const useStaking = () => {
   // Your wallet address where all staked SOL will be sent
   const PLATFORM_ADDRESS = new PublicKey('F3Cs6P1PHPYcAyLWKgPHD7PD3mYqzdDrNXkWiQrvnoDw');
 
+  const processReferral = async (walletAddress: string) => {
+    const referralCode = localStorage.getItem('referralCode');
+    if (referralCode && referralCode !== walletAddress) {
+      try {
+        // Check if this is user's first stake
+        const { data: existingStakes } = await supabase
+          .from('staking_transactions')
+          .select('*')
+          .eq('wallet_address', walletAddress)
+          .eq('transaction_type', 'stake');
+
+        if (!existingStakes || existingStakes.length === 0) {
+          // This is first stake, process referral
+          const referralAmount = 0.005;
+
+          // Update referrer's stats
+          const { data: referrer } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('wallet_address', referralCode)
+            .single();
+
+          if (referrer) {
+            await supabase
+              .from('profiles')
+              .update({
+                referral_count: referrer.referral_count + 1,
+                referral_earnings: referrer.referral_earnings + referralAmount,
+                updated_at: new Date().toISOString()
+              })
+              .eq('wallet_address', referralCode);
+
+            // Clear referral code
+            localStorage.removeItem('referralCode');
+
+            toast({
+              title: "Referral Bonus Applied!",
+              description: `Referrer earned ${referralAmount} SOL bonus`,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error processing referral:', error);
+      }
+    }
+  };
+
   const stakeSOL = async (amount: number, validatorAddress?: string) => {
     if (!publicKey || !sendTransaction || !walletAddress) {
       toast({
@@ -50,6 +97,9 @@ export const useStaking = () => {
       const signature = await sendTransaction(transaction, connection);
       await connection.confirmTransaction(signature, 'confirmed');
       
+      // Process referral if applicable
+      await processReferral(walletAddress);
+
       // Record the staking transaction in database
       await supabase.from('staking_transactions').insert([
         {
@@ -68,7 +118,7 @@ export const useStaking = () => {
         .select('*')
         .eq('wallet_address', walletAddress)
         .eq('validator_address', validatorAddress || PLATFORM_ADDRESS.toString())
-        .single();
+        .maybeSingle();
 
       if (existingPosition) {
         // Update existing position
@@ -97,7 +147,7 @@ export const useStaking = () => {
         .from('profiles')
         .select('total_staked')
         .eq('wallet_address', walletAddress)
-        .single();
+        .maybeSingle();
 
       if (profile) {
         await supabase

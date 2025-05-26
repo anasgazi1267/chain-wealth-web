@@ -9,12 +9,14 @@ interface Profile {
   username?: string;
   total_staked: number;
   total_rewards: number;
+  referral_count: number;
+  referral_earnings: number;
   created_at: string;
   updated_at: string;
 }
 
 export const useWalletAuth = () => {
-  const { publicKey, connected, connecting } = useWallet();
+  const { publicKey, connected } = useWallet();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -30,17 +32,17 @@ export const useWalletAuth = () => {
     try {
       setLoading(true);
       
-      // First, try to get existing profile
+      // Check if profile exists
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('*')
         .eq('wallet_address', walletAddress)
-        .single();
+        .maybeSingle();
 
       if (existingProfile) {
         setProfile(existingProfile);
       } else {
-        // Create new profile if doesn't exist
+        // Create new profile
         const { data: newProfile, error } = await supabase
           .from('profiles')
           .insert([
@@ -49,6 +51,8 @@ export const useWalletAuth = () => {
               username: `User_${walletAddress.slice(0, 8)}`,
               total_staked: 0,
               total_rewards: 0,
+              referral_count: 0,
+              referral_earnings: 0,
             }
           ])
           .select()
@@ -93,8 +97,8 @@ export const useWalletAuth = () => {
 
   return {
     profile,
-    loading: loading || connecting,
-    isAuthenticated: connected && !!profile && !loading,
+    loading,
+    isAuthenticated: connected && !!profile,
     walletAddress: publicKey?.toString(),
     updateProfile,
   };
