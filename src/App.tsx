@@ -38,8 +38,6 @@ const App = () => (
                 <Rewards />
               </ProtectedRoute>
             } />
-            {/* Redirect old auth route to home */}
-            <Route path="/auth" element={<Navigate to="/" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

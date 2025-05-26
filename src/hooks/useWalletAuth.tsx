@@ -21,7 +21,7 @@ export const useWalletAuth = () => {
   useEffect(() => {
     if (connected && publicKey) {
       createOrGetProfile(publicKey.toString());
-    } else {
+    } else if (!connected) {
       setProfile(null);
     }
   }, [connected, publicKey]);
@@ -94,7 +94,7 @@ export const useWalletAuth = () => {
   return {
     profile,
     loading: loading || connecting,
-    isAuthenticated: connected && !!profile,
+    isAuthenticated: connected && !!profile && !loading,
     walletAddress: publicKey?.toString(),
     updateProfile,
   };

@@ -1,23 +1,13 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton, WalletDisconnectButton } from '@solana/wallet-adapter-react-ui';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { Wallet } from "lucide-react";
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 
 const WalletConnect = () => {
   const { connected, connecting, publicKey } = useWallet();
-  const { isAuthenticated, loading } = useWalletAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // Auto-redirect to stake page when wallet connects and user is authenticated
-  useEffect(() => {
-    if (isAuthenticated && location.pathname === '/') {
-      navigate('/stake');
-    }
-  }, [isAuthenticated, location.pathname, navigate]);
+  const { loading } = useWalletAuth();
 
   if (connected && publicKey) {
     return (

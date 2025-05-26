@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Coins, Menu, X } from 'lucide-react';
 import { useState } from 'react';
@@ -10,7 +10,7 @@ import { useWalletAuth } from '@/hooks/useWalletAuth';
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, profile } = useWalletAuth();
-  const navigate = useNavigate();
+  const location = useLocation();
 
   const navItems = isAuthenticated ? [
     { name: 'Dashboard', href: '/stake' },
@@ -36,7 +36,11 @@ const Navigation = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className="text-purple-200 hover:text-white transition-colors duration-200"
+                className={`transition-colors duration-200 ${
+                  location.pathname === item.href 
+                    ? 'text-white font-semibold' 
+                    : 'text-purple-200 hover:text-white'
+                }`}
               >
                 {item.name}
               </Link>
@@ -73,7 +77,11 @@ const Navigation = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className="block text-purple-200 hover:text-white transition-colors duration-200"
+                className={`block transition-colors duration-200 ${
+                  location.pathname === item.href 
+                    ? 'text-white font-semibold' 
+                    : 'text-purple-200 hover:text-white'
+                }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.name}
