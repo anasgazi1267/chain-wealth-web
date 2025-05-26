@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { 
@@ -47,8 +46,8 @@ export const useStaking = () => {
             await supabase
               .from('profiles')
               .update({
-                referral_count: referrer.referral_count + 1,
-                referral_earnings: referrer.referral_earnings + referralAmount,
+                referral_count: (referrer.referral_count || 0) + 1,
+                referral_earnings: (referrer.referral_earnings || 0) + referralAmount,
                 updated_at: new Date().toISOString()
               })
               .eq('wallet_address', referralCode);
