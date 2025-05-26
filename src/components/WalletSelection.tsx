@@ -20,24 +20,12 @@ const WalletSelection = () => {
         description: 'Feature-rich wallet with staking support',
         icon: Monitor,
         recommended: false
-      },
-      {
-        name: 'Glow',
-        description: 'Simple and secure Solana wallet',
-        icon: Shield,
-        recommended: false
       }
     ],
     mobile: [
       {
         name: 'Torus',
         description: 'Easy social login wallet',
-        icon: Smartphone,
-        recommended: false
-      },
-      {
-        name: 'Slope',
-        description: 'Mobile-first Solana wallet',
         icon: Smartphone,
         recommended: false
       }
@@ -64,7 +52,7 @@ const WalletSelection = () => {
           <Monitor className="h-5 w-5 mr-2" />
           Desktop Wallets
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {walletCategories.desktop.map((walletInfo) => {
             const wallet = wallets.find(w => w.adapter.name === walletInfo.name);
             return (
@@ -110,7 +98,7 @@ const WalletSelection = () => {
           <Smartphone className="h-5 w-5 mr-2" />
           Mobile & Web Wallets
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {walletCategories.mobile.map((walletInfo) => {
             const wallet = wallets.find(w => w.adapter.name === walletInfo.name);
             return (

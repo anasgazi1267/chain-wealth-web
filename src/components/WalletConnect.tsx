@@ -61,8 +61,7 @@ const WalletConnect = () => {
           {wallets
             .filter(wallet => 
               wallet.adapter.name === 'Phantom' || 
-              wallet.adapter.name === 'Solflare' ||
-              wallet.adapter.name === 'Glow'
+              wallet.adapter.name === 'Solflare'
             )
             .map((wallet) => (
               <DropdownMenuItem
@@ -92,8 +91,7 @@ const WalletConnect = () => {
           
           {wallets
             .filter(wallet => 
-              wallet.adapter.name === 'Torus' ||
-              wallet.adapter.name === 'Slope'
+              wallet.adapter.name === 'Torus'
             )
             .map((wallet) => (
               <DropdownMenuItem
